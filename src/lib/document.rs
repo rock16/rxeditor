@@ -38,12 +38,14 @@ impl Document {
     }
 
     pub fn undo(&mut self){
-        if let Some(previous_content)=self.undo_stack.pop(){
+        if let Some(previous_content)=self.undo_stack.pop() {
             self.redo_stack.push(self.content.clone());
             self.content = previous_content;
+        }
     }
 }
-#[cfg(tests)]
+
+#[cfg(test)]
 mod tests {
     use super::*;
 
@@ -53,8 +55,9 @@ mod tests {
         document.insert_text("Hello ",0);
         document.insert_text("world",5);
 
-        assert_equal(document.get_content(), "Hello world");
+        assert_eq!(document.get_content(), "Hello world");
     }
 }
+
 
 
