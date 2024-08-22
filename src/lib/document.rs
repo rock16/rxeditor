@@ -30,6 +30,7 @@ impl Document {
     }
 
     pub fn remove_text(&mut self, start: usize, end: usize){
+        let end = end.min(self.content.len());
         if end >= start{
             if self.undo_stack.len() >= self.undo_limit {
                 self.undo_stack.pop_front();
