@@ -1,2 +1,2 @@
-pub mod document;
-mod texteditor;
+mod document;
+pub mod texteditor;
