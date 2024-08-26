@@ -1,6 +1,10 @@
-mod lib;
-mod ui;
+use slint::slint;
 
+mod lib;
+//mod ui;
+
+slint::include_modules!();
 fn main() {
-    println!("Hello, world!");
+    let ui = RxTextEdittor::new().unwrap();
+    ui.run().unwrap()
 }

@@ -52,12 +52,8 @@ export component RxTextEdittor inherits Window {
                 background: green;
                 width: 30px;
             }
-            textinput := ScrollView {
-                TextEdit {
-                    wrap: no-wrap;
-                    width: parent.width - 3px;
-                    height: parent.height;
-                }
+            textinput := TextEdit {
+                wrap: no-wrap;
             }
         }
 

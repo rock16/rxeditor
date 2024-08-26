@@ -1,4 +1,4 @@
-use slint::prelude::*;
+
 use crate::lib::texteditor::TextEditor;
 
 pub struct TextEditorView {
