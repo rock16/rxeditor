@@ -16,8 +16,14 @@ component mymenu inherits Rectangle {
     }
 
 }
+export global TextContent {
+    in-out property <string> content;
+    in-out property <string> word_count;
+}
+
 export component RxTextEdittor inherits Window {
     //background: #2d2d2d;
+    in-out property <string> word_count;
     min-width: 480px;
     VerticalLayout {
         width: parent.width - 2px;
@@ -54,12 +60,16 @@ export component RxTextEdittor inherits Window {
             }
             textinput := TextEdit {
                 wrap: no-wrap;
+                text <=> TextContent.content;
             }
         }
 
         statusbar := Rectangle{
             height: 30px;
             background: #2d2d2d;
+            HorizontalLayout {
+                mymenu {text: root.word_count + ": words";}
+             }
         }
     }
 }
