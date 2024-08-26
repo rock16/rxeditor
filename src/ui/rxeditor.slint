@@ -1,3 +1,69 @@
-export component TextEditor inherits Window {
+import { Button, ScrollView, TextEdit} from "std-widgets.slint";
 
+component mymenu inherits Rectangle {
+    in property <string> text;
+    in property <length> mHeight;
+    in-out property <bool> enabled;
+    height: mHeight;
+
+    item := VerticalLayout{
+                alignment: space-around;
+                Text {
+                    font-size: 12px;
+                    text: text; color:
+                    root.enabled ? white : grey;
+                }
+    }
+
+}
+export component RxTextEdittor inherits Window {
+    //background: #2d2d2d;
+    min-width: 480px;
+    VerticalLayout {
+        width: parent.width - 2px;
+        height: parent.height - 2px;
+
+        // Menu Bar
+        menubar := Rectangle{
+            height: 48px;
+            background: #3d3d3d;
+            HorizontalLayout {
+                alignment: space-around;
+                doBtn := HorizontalLayout {
+                    alignment: end;
+                    spacing: 20px;
+                    undo := mymenu {text: "Undo"; mHeight: parent.height; enabled: true;}
+                    redo := mymenu {text: "Redo"; mHeight: parent.height;}
+                }
+                menuitem := HorizontalLayout {
+                    spacing: 20px;
+                    alignment: end;
+                    padding-right: -20px;
+                    mymenu {text: "New"; mHeight: parent.height;}
+                    mymenu {text: "Save"; mHeight: parent.height;}
+                    mymenu {text: "Save as"; mHeight: parent.height;}
+                }
+            }
+
+        }
+
+        HorizontalLayout {
+            Rectangle {
+                background: green;
+                width: 30px;
+            }
+            textinput := ScrollView {
+                TextEdit {
+                    wrap: no-wrap;
+                    width: parent.width - 3px;
+                    height: parent.height;
+                }
+            }
+        }
+
+        statusbar := Rectangle{
+            height: 30px;
+            background: #2d2d2d;
+        }
+    }
 }
