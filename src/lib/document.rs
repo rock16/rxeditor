@@ -19,12 +19,12 @@ impl Document {
         }
     }
 
-    pub fn insert_text(&mut self, text: &str, position: usize){
+    pub fn insert_text(&mut self, text: &str){
         if self.undo_stack.len()>= self.undo_limit {
             self.undo_stack.pop_front();
         }
         self.undo_stack.push_back(self.content.clone());
-        self.content.insert_str(position,text);
+        self.content = text.parse().unwrap();
         self.cursor_position += text.len();
         self.redo_stack.clear();
     }
@@ -57,12 +57,18 @@ impl Document {
             self.cursor_position = self.content.len();
         }
     }
+    pub fn get_undo_stack_size(&self) -> usize {
+        self.undo_stack.len()
+    }
     pub fn redo(&mut self){
         if let Some(next_content) = self.redo_stack.pop_back() {
             self.undo_stack.push_back(self.content.clone());
             self.content = next_content;
             self.cursor_position = self.content.len();
         }
+    }
+    pub fn get_redo_stack_size(&self) -> usize{
+        self.redo_stack.len()
     }
 }
 
@@ -73,8 +79,7 @@ mod tests {
     #[test]
     fn test_insert_text(){
         let mut document = Document::new();
-        document.insert_text("Hello ",0);
-        document.insert_text("world",6);
+        document.insert_text("Hello world");
 
         assert_eq!(document.get_content(), "Hello world");
     }
@@ -82,8 +87,9 @@ mod tests {
     #[test]
     fn test_undo(){
         let mut document = Document::new();
-        document.insert_text("Hello ", 0);
-        document.insert_text("world", 6);
+        document.insert_text("Hello ");
+        let str = document.get_content().to_string() + "world";
+        document.insert_text(&str);
         document.undo();
 
         assert_eq!(document.get_content(), "Hello ");
@@ -91,7 +97,7 @@ mod tests {
     #[test]
     fn test_get_position(){
         let mut document = Document::new();
-        document.insert_text("Hello", 0);
+        document.insert_text("Hello");
 
         assert_eq!(document.get_cursor_position(), 5)
     }
@@ -99,7 +105,7 @@ mod tests {
     #[test]
     fn test_remove_text(){
         let mut document = Document::new();
-        document.insert_text("Hello", 0);
+        document.insert_text("Hello");
         document.remove_text(1, 5);
 
         assert_eq!(document.get_content(), "H");
@@ -108,9 +114,9 @@ mod tests {
     #[test]
     fn test_redo(){
         let mut document = Document::new();
-        document.insert_text("Hello", 0);
-        let cursor = document.get_cursor_position();
-        document.insert_text(" World!", cursor);
+        document.insert_text("Hello ");
+        let str = document.get_content().to_string() + "World!";
+        document.insert_text(&str);
         document.undo();
         document.redo();
         assert_eq!(document.get_content(), "Hello World!");

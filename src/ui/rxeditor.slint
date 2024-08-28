@@ -5,6 +5,7 @@ component mymenu inherits Rectangle {
     in property <length> mHeight;
     in-out property <bool> enabled;
     height: mHeight;
+    callback menuClicked();
 
     item := VerticalLayout{
                 alignment: space-around;
@@ -15,15 +16,34 @@ component mymenu inherits Rectangle {
                 }
     }
 
+    touch := TouchArea{
+        height: root.mHeight;
+        width: root.width;
+        clicked => {menuClicked()}
+    }
+
 }
 export global TextContent {
+    callback text_editted(string);
     in-out property <string> content;
     in-out property <string> word_count;
+
+}
+// menu callbacks
+export global MyMenuCallback {
+    callback new();
+    callback save();
+    callback save_as();
+    callback redo();
+    callback undo();
 }
 
 export component RxTextEdittor inherits Window {
-    //background: #2d2d2d;
-    in-out property <string> word_count;
+    in-out property <int> word_count;
+    in-out property <string> content;
+    in-out property <bool> undo_enabled: false;
+    in-out property <bool> redo_enabled: false;
+    callback button_clicked;
     min-width: 480px;
     VerticalLayout {
         width: parent.width - 2px;
@@ -38,15 +58,28 @@ export component RxTextEdittor inherits Window {
                 doBtn := HorizontalLayout {
                     alignment: end;
                     spacing: 20px;
-                    undo := mymenu {text: "Undo"; mHeight: parent.height; enabled: true;}
-                    redo := mymenu {text: "Redo"; mHeight: parent.height;}
+                    undo := mymenu {
+                        text: "Undo";
+                        mHeight: parent.height;
+                        enabled: root.undo_enabled;
+                        menuClicked => {MyMenuCallback.undo(); textinput.text = root.content;}
+                    }
+                    redo := mymenu {
+                        text: "Redo"; mHeight: parent.height;
+                        enabled: root.redo_enabled;
+                        menuClicked => {MyMenuCallback.redo(); textinput.text = root.content;}
+                    }
                 }
                 menuitem := HorizontalLayout {
                     spacing: 20px;
                     alignment: end;
                     padding-right: -20px;
-                    mymenu {text: "New"; mHeight: parent.height;}
-                    mymenu {text: "Save"; mHeight: parent.height;}
+                    mymenu {text: "New"; mHeight: parent.height;menuClicked => {button_clicked()}}
+                    mymenu {
+                        text: "Save";
+                        mHeight: parent.height;
+                        menuClicked => {MyMenuCallback.save()}
+                    }
                     mymenu {text: "Save as"; mHeight: parent.height;}
                 }
             }
@@ -60,7 +93,9 @@ export component RxTextEdittor inherits Window {
             }
             textinput := TextEdit {
                 wrap: no-wrap;
-                text <=> TextContent.content;
+                edited(text) => {
+                    TextContent.text_editted(text);
+                }
             }
         }
 
@@ -68,7 +103,7 @@ export component RxTextEdittor inherits Window {
             height: 30px;
             background: #2d2d2d;
             HorizontalLayout {
-                mymenu {text: root.word_count + ": words";}
+                mymenu {text:": words";}
              }
         }
     }

@@ -12,7 +12,7 @@ impl TextEditor {
     }
 
     pub fn insert_text(&mut self, text: &str) {
-        self.document.insert_text(text, self.document.get_cursor_position());
+        self.document.insert_text(text);
     }
 
     pub fn get_content(&self) -> &str {
@@ -24,6 +24,24 @@ impl TextEditor {
         let end= start - length;
         let end = end.max(0);
         self.document.remove_text(end, start);
+    }
+
+    pub fn undo(&mut self){
+        self.document.undo();
+    }
+
+    pub fn redo(&mut self){
+        self.document.redo();
+    }
+
+    pub fn get_cursor(&self) ->usize{
+        self.document.get_cursor_position()
+    }
+    pub fn should_undo(&self) -> bool{
+        self.document.get_undo_stack_size() > 0
+    }
+    pub fn should_redo(&self) -> bool{
+        self.document.get_redo_stack_size() > 0
     }
 }
 

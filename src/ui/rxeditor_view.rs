@@ -1,43 +1,78 @@
+use std::cell::RefCell;
+use std::rc::Rc;
 use slint::{ComponentHandle, PlatformError};
 use crate::lib::texteditor::TextEditor;
-
-
 slint::include_modules!();
 
+
 pub struct TextEditorView {
-    app: RxTextEdittor,
-    text_editor: TextEditor,
-    //text_input: TextInput,
+    ui: RxTextEdittor,
+    text_editor: Rc<RefCell<TextEditor>>,
 }
 
 impl TextEditorView
 {
     pub fn new(text_editor: TextEditor) -> Self {
-        let app = RxTextEdittor::new().unwrap();
-
+        let ui = RxTextEdittor::new().unwrap();
+        let text_editor= Rc::new(RefCell::new(text_editor));
         Self {
-            app,
+            ui,
             text_editor,
-            //text_input,
         }
     }
 
-    pub fn run(&mut self) {
-        //self.text_input.text.bind(self.text_editor.get_content());
+    pub(crate) fn callback(&mut self){
+        let ui_handler = self.ui.as_weak();
 
-        /*
-        self.text_input.text_changed.connect(move |text| {
-            self.text_editor.insert_text(text);
+        // Text input callback
+        let tx = Rc::clone(&self.text_editor);
+        self.ui.global::<TextContent>().on_text_editted(move |new_txt| {
+            let mut tx_editor = tx.borrow_mut();
+            tx_editor.insert_text(&new_txt);
+            let ui = ui_handler.upgrade().unwrap();
+            // enable undo button if there are items on the undo stack
+            ui.set_undo_enabled(tx_editor.should_undo());
+            // enable redo button if there are items on the redo stack
+            ui.set_redo_enabled(tx_editor.should_redo());
         });
 
-         */
-        let ui_handle = self.app.as_weak();
-        self.app.global::<TextContent>().(move |new_txt|{
-            self.text_editor.insert_text(new_txt);
-            let word_count = new_txt.split_whitespace().count();
-            let ui = ui_handle.unwrap();
-            ui.set_word_count(format!("{}", word_count));
+        // Undo callbacks: react to undo button pressed
+        let ui_handler = self.ui.as_weak();
+        let tx_editor_undo_handler = Rc::clone(&self.text_editor);
+        self.ui.global::<MyMenuCallback>().on_undo(move ||{
+            let mut tx_editor = tx_editor_undo_handler.borrow_mut();
+            tx_editor.undo();
+            let ui = ui_handler.upgrade().unwrap();
+            ui.set_content(tx_editor.get_content().into());
+            ui.set_undo_enabled(tx_editor.should_undo());
+            ui.set_redo_enabled(tx_editor.should_redo());
+
         });
-        self.app.run().expect("Unable to run textEdittor");
+
+        // Redo callbacks: react to Redo button
+        let ui_redo_handler = self.ui.as_weak();
+        let tx_editor_redo_handler = Rc::clone(&self.text_editor);
+        self.ui.global::<MyMenuCallback>().on_redo(move ||{
+            let mut tx_editor = tx_editor_redo_handler.borrow_mut();
+            tx_editor.redo();
+            let ui = ui_redo_handler.upgrade().unwrap();
+            ui.set_content(tx_editor.get_content().into());
+            // enable undo button if there are items on the undo stack
+            ui.set_undo_enabled(tx_editor.should_undo());
+            // enable redo button if there are items on the redo stack
+            ui.set_redo_enabled(tx_editor.should_redo());
+        });
+    }
+
+    /*fn set_redo_and_undo(&self) {
+        // enable undo button if there are items on the undo stack
+        ui.set_undo_enabled(tx_editor.should_undo());
+        // enable redo button if there are items on the redo stack
+        ui.set_redo_enabled(tx_editor.should_redo());
+    }
+     */
+
+    pub fn run(mut self)-> Result<(), PlatformError>{
+        self.ui.run()
     }
 }
