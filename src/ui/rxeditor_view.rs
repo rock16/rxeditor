@@ -1,4 +1,4 @@
-use std::cell::RefCell;
+use std::cell::{RefCell, RefMut};
 use std::rc::Rc;
 use slint::{ComponentHandle, PlatformError};
 use crate::lib::texteditor::TextEditor;
@@ -30,10 +30,7 @@ impl TextEditorView
             let mut tx_editor = tx.borrow_mut();
             tx_editor.insert_text(&new_txt);
             let ui = ui_handler.upgrade().unwrap();
-            // enable undo button if there are items on the undo stack
-            ui.set_undo_enabled(tx_editor.should_undo());
-            // enable redo button if there are items on the redo stack
-            ui.set_redo_enabled(tx_editor.should_redo());
+            Self::set_redo_and_undo(ui, tx_editor);
         });
 
         // Undo callbacks: react to undo button pressed
@@ -44,8 +41,7 @@ impl TextEditorView
             tx_editor.undo();
             let ui = ui_handler.upgrade().unwrap();
             ui.set_content(tx_editor.get_content().into());
-            ui.set_undo_enabled(tx_editor.should_undo());
-            ui.set_redo_enabled(tx_editor.should_redo());
+            Self::set_redo_and_undo(ui, tx_editor);
 
         });
 
@@ -57,20 +53,16 @@ impl TextEditorView
             tx_editor.redo();
             let ui = ui_redo_handler.upgrade().unwrap();
             ui.set_content(tx_editor.get_content().into());
-            // enable undo button if there are items on the undo stack
-            ui.set_undo_enabled(tx_editor.should_undo());
-            // enable redo button if there are items on the redo stack
-            ui.set_redo_enabled(tx_editor.should_redo());
+            Self::set_redo_and_undo(ui, tx_editor);
         });
     }
 
-    /*fn set_redo_and_undo(&self) {
+    fn set_redo_and_undo(ui: RxTextEdittor, tx_editor: RefMut<TextEditor>) {
         // enable undo button if there are items on the undo stack
         ui.set_undo_enabled(tx_editor.should_undo());
         // enable redo button if there are items on the redo stack
         ui.set_redo_enabled(tx_editor.should_redo());
     }
-     */
 
     pub fn run(mut self)-> Result<(), PlatformError>{
         self.ui.run()
