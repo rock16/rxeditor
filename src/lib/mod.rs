@@ -1,2 +1,3 @@
 mod document;
-pub mod texteditor;
+mod texteditor;
+pub mod texthistory;

@@ -1,5 +1,6 @@
 use std::collections::LinkedList;
 
+#[derive(Debug)]
 pub struct Document {
     content: String,
     cursor_position: usize,

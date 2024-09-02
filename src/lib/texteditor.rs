@@ -1,5 +1,6 @@
 use crate::lib::document::Document;
 
+#[derive(Debug)]
 pub struct TextEditor{
     document: Document,
 }
