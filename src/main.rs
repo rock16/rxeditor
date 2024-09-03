@@ -5,6 +5,7 @@ use futures::SinkExt;
 use slint::SharedString;
 use crate::lib::texthistory::TextHistory;
 use crate::ui::rxeditor_view::AppState;
+use crate::ui::utils;
 slint::include_modules!();
 
 
@@ -51,7 +52,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>>{
     let text_history_clone = app_state.get_text_history();
     let ui_handle = ui.as_weak();
     let is_programmatic_change_clone = app_state.get_is_programmatic_change();
-    tokio::spawn(crate::ui::utils::debouncer(receiver, Duration::from_millis(0),is_programmatic_change_clone ,text_history_clone, ui_handle));
+    tokio::spawn(utils::debouncer(receiver, Duration::from_millis(0),is_programmatic_change_clone ,text_history_clone, ui_handle));
 
     let text_history = app_state.get_text_history();
     let ui_handle = ui.as_weak();
@@ -80,6 +81,16 @@ async fn main() -> Result<(), Box<dyn std::error::Error>>{
             *is_programmatic_change.lock().unwrap() = false;
             ui.set_undo_enabled(history.can_undo());
             ui.set_redo_enabled(history.can_redo());
+        }
+    });
+
+    let ui_handle = ui.as_weak();
+    ui.global::<MyMenuCallback>().on_save_as(move || {
+        let ui = ui_handle.unwrap();
+        // Assuming you have a way to get the current
+        let content = ui.get_content();
+        if let Err(e) = utils::save_as(&content) {
+            eprintln!("Error saving file: {}", e);
         }
     });
 

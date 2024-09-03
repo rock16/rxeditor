@@ -1,6 +1,8 @@
+use std::fs;
 use std::sync::{Arc, mpsc, Mutex};
 use futures::channel::mpsc::Receiver;
 use futures::StreamExt;
+use rfd::FileDialog;
 use slint::SharedString;
 use tokio::time::{sleep, Duration, Instant};
 use crate::lib::texthistory::TextHistory;
@@ -37,4 +39,17 @@ pub async fn debouncer(
             }
         }
     }
+}
+
+pub fn save_as(content: &str) -> Result<(), Box<dyn std::error::Error>> {
+    if let Some(path) = FileDialog::new()
+        .set_directory("/")
+        .add_filter("Text files", &["txt"])
+        .save_file() {
+        fs::write(path, content)?;
+        println!("File saved successfully");
+    } else {
+        println!("Save operation canceled");
+    }
+    Ok(())
 }

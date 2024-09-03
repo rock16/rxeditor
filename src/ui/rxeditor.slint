@@ -29,6 +29,7 @@ export global TextContent {
     in-out property <string> word_count;
 
 }
+
 // menu callbacks
 export global MyMenuCallback {
     callback new();
@@ -80,7 +81,7 @@ export component RxTextEdittor inherits Window {
                         mHeight: parent.height;
                         menuClicked => {MyMenuCallback.save()}
                     }
-                    mymenu {text: "Save as"; mHeight: parent.height;}
+                    mymenu {text: "Save as"; mHeight: parent.height; enabled: true; menuClicked => {MyMenuCallback.save_as()}}
                 }
             }
 
@@ -94,6 +95,7 @@ export component RxTextEdittor inherits Window {
             textinput := TextEdit {
                 wrap: no-wrap;
                 edited(text) => {
+                    root.content = text;
                     TextContent.text_editted(text);
                 }
             }

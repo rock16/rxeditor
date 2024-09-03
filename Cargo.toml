@@ -10,6 +10,7 @@ slint = {git = "https://github.com/slint-ui/slint.git",   rev = "13692e2647ca987
 tokio = { version = "1.40.0", features = ["rt", "rt-multi-thread", "macros", "time"] }
 tokio-macros = "2.4.0"
 futures = "0.3.30"
+rfd = "0.14.1"
 
 [build-dependencies]
 slint-build = {git = "https://github.com/slint-ui/slint.git",   rev = "13692e2647ca987600ee31b164c12b893491b5cd", features = ["default"]}
