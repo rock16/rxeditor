@@ -60,7 +60,7 @@ pub fn save_as(content: &str, current_file_path: &Arc<Mutex<Option<PathBuf>>>) -
 }
 
 pub fn open_file(current_file_path: &Arc<Mutex<Option<PathBuf>>>) -> Result<String, Box<dyn std::error::Error>> {
-    let current_path = current_file_path.lock().unwrap();
+    let mut current_path = current_file_path.lock().unwrap();
     if let Some(path) = FileDialog::new()
         .add_filter("text", &["txt"])
         .set_directory("/")

@@ -116,7 +116,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>>{
 
             *is_programmatic_change.lock().unwrap() = true;
             println!("{}", content);
-            ui.set_content("content.into()".into());
+            ui.set_content(content.into());
             *is_programmatic_change.lock().unwrap() = false;
 
             ui.set_undo_enabled(history.can_undo());

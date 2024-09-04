@@ -77,7 +77,7 @@ export component RxTextEdittor inherits Window {
                     spacing: 20px;
                     alignment: end;
                     padding-right: -20px;
-                    mymenu {text: "New"; mHeight: parent.height;menuClicked => {button_clicked()}}
+                    mymenu {text: "New"; mHeight: parent.height; enabled: true; menuClicked => {button_clicked()}}
                     mymenu {
                         text: "Save";
                         mHeight: parent.height;
@@ -88,7 +88,11 @@ export component RxTextEdittor inherits Window {
                         text: "Open";
                         mHeight: parent.height;
                         enabled: true;
-                        menuClicked => {MenuCallback.open()}
+                        menuClicked => {
+
+                            MenuCallback.open();
+                            textinput.text = root.content;
+                            }
                     }
                     mymenu {text: "Save as"; mHeight: parent.height; enabled: true; menuClicked => {MenuCallback.save_as()}}
                 }
