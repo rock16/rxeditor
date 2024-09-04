@@ -31,10 +31,11 @@ export global TextContent {
 }
 
 // menu callbacks
-export global MyMenuCallback {
+export global MenuCallback {
     callback new();
     callback save();
     callback save_as();
+    callback open();
     callback redo();
     callback undo();
 }
@@ -45,7 +46,8 @@ export component RxTextEdittor inherits Window {
     in-out property <bool> undo_enabled: false;
     in-out property <bool> redo_enabled: false;
     callback button_clicked;
-    min-width: 480px;
+    min-width: 520px;
+    min-height: 480px;
     VerticalLayout {
         width: parent.width - 2px;
         height: parent.height - 2px;
@@ -63,12 +65,12 @@ export component RxTextEdittor inherits Window {
                         text: "Undo";
                         mHeight: parent.height;
                         enabled: root.undo_enabled;
-                        menuClicked => {MyMenuCallback.undo(); textinput.text = root.content;}
+                        menuClicked => {MenuCallback.undo(); textinput.text = root.content;}
                     }
                     redo := mymenu {
                         text: "Redo"; mHeight: parent.height;
                         enabled: root.redo_enabled;
-                        menuClicked => {MyMenuCallback.redo(); textinput.text = root.content;}
+                        menuClicked => {MenuCallback.redo(); textinput.text = root.content;}
                     }
                 }
                 menuitem := HorizontalLayout {
@@ -79,9 +81,16 @@ export component RxTextEdittor inherits Window {
                     mymenu {
                         text: "Save";
                         mHeight: parent.height;
-                        menuClicked => {MyMenuCallback.save()}
+                        enabled: true;
+                        menuClicked => {MenuCallback.save()}
                     }
-                    mymenu {text: "Save as"; mHeight: parent.height; enabled: true; menuClicked => {MyMenuCallback.save_as()}}
+                    mymenu {
+                        text: "Open";
+                        mHeight: parent.height;
+                        enabled: true;
+                        menuClicked => {MenuCallback.open()}
+                    }
+                    mymenu {text: "Save as"; mHeight: parent.height; enabled: true; menuClicked => {MenuCallback.save_as()}}
                 }
             }
 

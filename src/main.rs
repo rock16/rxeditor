@@ -1,9 +1,7 @@
-use std::sync::{Arc, Mutex};
-use tokio::time::{Duration, Instant};
+use tokio::time::{Duration};
 use futures::channel::mpsc;
 use futures::SinkExt;
 use slint::SharedString;
-use crate::lib::texthistory::TextHistory;
 use crate::ui::rxeditor_view::AppState;
 use crate::ui::utils;
 slint::include_modules!();
@@ -57,7 +55,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>>{
     let text_history = app_state.get_text_history();
     let ui_handle = ui.as_weak();
     let is_programmatic_change = app_state.get_is_programmatic_change();
-    ui.global::<MyMenuCallback>().on_undo(move || {
+    ui.global::<MenuCallback>().on_undo(move || {
         let mut history = text_history.lock().unwrap();
         let ui = ui_handle.unwrap();
         if let Some(text) = history.undo() {
@@ -72,7 +70,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>>{
     let text_history = app_state.text_history.clone();
     let ui_handle = ui.as_weak();
     let is_programmatic_change = app_state.get_is_programmatic_change();
-    ui.global::<MyMenuCallback>().on_redo(move || {
+    ui.global::<MenuCallback>().on_redo(move || {
         let mut history = text_history.lock().unwrap();
         let ui = ui_handle.unwrap();
         if let Some(text) = history.redo() {
@@ -84,13 +82,47 @@ async fn main() -> Result<(), Box<dyn std::error::Error>>{
         }
     });
 
+    //let ui_handle = ui.as_weak();
+    let text_history = app_state.get_text_history();
+    let current_file_path = app_state.get_current_file_path();
+    ui.global::<MenuCallback>().on_save(move ||{
+        let history = text_history.lock().unwrap();
+        let content = history.history[history.current_index].clone();
+        if let Err(e) = utils::save_file(&content, &current_file_path){
+            eprintln!("Error saving file {}", e);
+        }
+    });
+
     let ui_handle = ui.as_weak();
-    ui.global::<MyMenuCallback>().on_save_as(move || {
+    let current_file_path = app_state.get_current_file_path();
+    ui.global::<MenuCallback>().on_save_as(move || {
         let ui = ui_handle.unwrap();
         // Assuming you have a way to get the current
         let content = ui.get_content();
-        if let Err(e) = utils::save_as(&content) {
+        if let Err(e) = utils::save_as(&content, &current_file_path) {
             eprintln!("Error saving file: {}", e);
+        }
+    });
+
+    let ui_handle = ui.as_weak();
+    let text_history = app_state.get_text_history();
+    let file_path = app_state.get_current_file_path();
+    let is_programmatic_change = app_state.get_is_programmatic_change();
+    ui.global::<MenuCallback>().on_open(move ||{
+        let ui = ui_handle.unwrap();
+        if let Ok(content) = utils::open_file(&file_path){
+            let mut history = text_history.lock().unwrap();
+            history.add_change(content.clone());
+
+            *is_programmatic_change.lock().unwrap() = true;
+            println!("{}", content);
+            ui.set_content("content.into()".into());
+            *is_programmatic_change.lock().unwrap() = false;
+
+            ui.set_undo_enabled(history.can_undo());
+            ui.set_redo_enabled(history.can_redo());
+        } else {
+            eprintln!("Error opening file ");
         }
     });
 

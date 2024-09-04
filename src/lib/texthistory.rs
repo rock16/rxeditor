@@ -22,7 +22,6 @@ impl TextHistory {
     pub fn add_change(&mut self, text: String) {
         if self.current_index == 0 || text != self.history[self.current_index] {
             self.history.truncate(self.current_index + 1);
-            println!("{}", text);
             self.history.push(text);
             self.current_index += 1;
         }
