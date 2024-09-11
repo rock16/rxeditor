@@ -115,7 +115,6 @@ async fn main() -> Result<(), Box<dyn std::error::Error>>{
             history.add_change(content.clone());
 
             *is_programmatic_change.lock().unwrap() = true;
-            println!("{}", content);
             ui.set_content(content.into());
             *is_programmatic_change.lock().unwrap() = false;
 
