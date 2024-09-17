@@ -2,10 +2,15 @@ use std::path::PathBuf;
 use std::sync::{Arc, Mutex};
 use crate::lib::texthistory::TextHistory;
 
-pub struct AppState {
+pub struct Tab{
     pub text_history: Arc<Mutex<TextHistory>>,
     pub is_programmatic_change: Arc<Mutex<bool>>,
-    current_file_path: Arc<Mutex<Option<PathBuf>>>,
+    current_file_path: Arc<Mutex<Option<PathBuf>>>
+}
+
+pub struct AppState {
+    pub tabs: Vec<Tab>,
+    current_index: usize
 }
 
 impl AppState {
@@ -13,10 +18,12 @@ impl AppState {
         let text_history = Arc::new(Mutex::new(TextHistory::new()));
         let is_programmatic_change = Arc::new(Mutex::new(false));
         let current_file_path = Arc::new(Mutex::new(None));
+        let current_index = 0;
         AppState{
             text_history,
             is_programmatic_change,
             current_file_path,
+            current_index
         }
     }
 
