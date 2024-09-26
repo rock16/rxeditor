@@ -67,7 +67,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>>{
         }
     });
 
-    let text_history = app_state.text_history.clone();
+    let text_history = app_state.get_text_history().clone();
     let ui_handle = ui.as_weak();
     let is_programmatic_change = app_state.get_is_programmatic_change();
     ui.global::<MenuCallback>().on_redo(move || {

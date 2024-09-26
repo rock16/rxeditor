@@ -8,6 +8,19 @@ pub struct Tab{
     current_file_path: Arc<Mutex<Option<PathBuf>>>
 }
 
+impl Tab{
+    fn new() -> Self{
+        let text_history = Arc::new(Mutex::new(TextHistory::new()));
+        let is_programmatic_change = Arc::new(Mutex::new(false));
+        let current_file_path = Arc::new(Mutex::new(None));
+        Tab{
+            text_history,
+            is_programmatic_change,
+            current_file_path,
+        }
+    }
+}
+
 pub struct AppState {
     pub tabs: Vec<Tab>,
     current_index: usize
@@ -15,29 +28,27 @@ pub struct AppState {
 
 impl AppState {
     pub fn new()->Self{
-        let text_history = Arc::new(Mutex::new(TextHistory::new()));
-        let is_programmatic_change = Arc::new(Mutex::new(false));
-        let current_file_path = Arc::new(Mutex::new(None));
+        let mut tab = Tab::new();
+        let mut tabs: Vec<Tab> = Vec::new();
+        tabs.push(tab);
         let current_index = 0;
         AppState{
-            text_history,
-            is_programmatic_change,
-            current_file_path,
+            tabs,
             current_index
         }
     }
 
     pub fn get_text_history(&self)->Arc<Mutex<TextHistory>>{
-        self.text_history.clone()
+        self.tabs[self.current_index].text_history.clone()
     }
     pub fn get_is_programmatic_change(&self)->Arc<Mutex<bool>>{
-        self.is_programmatic_change.clone()
+        self.tabs[self.current_index].is_programmatic_change.clone()
     }
     pub fn get_current_file_path(&self) -> Arc<Mutex<Option<PathBuf>>>{
-        self.current_file_path.clone()
+        self.tabs[self.current_index].current_file_path.clone()
     }
     pub fn set_current_file_path(&mut self, path: PathBuf) {
         let current_path = Arc::new(Mutex::new(Some(path)));
-        self.current_file_path = current_path;
+        self.tabs[self.current_index].current_file_path = current_path;
     }
 }
