@@ -27,15 +27,11 @@ export global TextContent {
     callback text_editted(string);
     in-out property <string> content;
     in-out property <string> word_count;
-
 }
 
 export global TabManager {
     callback new-tab();
     callback switch-tab(int);
-    in-out property <[string]> tab-titles: [
-    "output", "input", "text0", "text1", "text2", "text3", "text4"
-    ];
     in-out property <int> current-tab-index;
 }
 
@@ -54,6 +50,9 @@ export component RxTextEdittor inherits Window {
     in-out property <string> content;
     in-out property <bool> undo_enabled: false;
     in-out property <bool> redo_enabled: false;
+    in-out property <[string]> tab-titles: [
+        "output", "input", "text0", "text1"
+    ];
     callback button_clicked;
     min-width: 520px;
     min-height: 480px;
@@ -86,7 +85,7 @@ export component RxTextEdittor inherits Window {
                     spacing: 20px;
                     alignment: end;
                     padding-right: -20px;
-                    mymenu {text: "New"; mHeight: parent.height; enabled: true; menuClicked => {button_clicked()}}
+                    mymenu {text: "New"; mHeight: parent.height; enabled: true; menuClicked => {button_clicked(); TabManager.new-tab()}}
                     mymenu {
                         text: "Save";
                         mHeight: parent.height;
@@ -118,14 +117,15 @@ export component RxTextEdittor inherits Window {
                 alignment: space-between;
                 tabs := HorizontalLayout {
                     spacing: 1px;
+                    height: 24px;
                     // start tabs
-                    for tab[i] in TabManager.tab-titles: Rectangle{
-                         max-height: 30px;
+                    for tab[i] in root.tab-titles: Rectangle{
+                         max-height: parent.height;
                          background: #5f5f5f;
-                         max-width: root.width/3;
+                         max-width: (root.width - number-tab.width)/3;//TabManager.tab_titles.length - TabManager.tab_titles.length * 2px - number-tab.width;
                          TouchArea {
                              Text {
-                                  text: TabManager.tab-titles[i];
+                                  text: root.tab-titles[i];
                                   color: i == TabManager.current-tab-index ? white : grey;
                              }
                              clicked => {TabManager.switch-tab(i);}
@@ -134,7 +134,9 @@ export component RxTextEdittor inherits Window {
                     // end tabs
                 }
                 textinput := TextEdit {
-                     height: 300px;
+                     width: root.width - number-tab.width - 2px;
+                     height: root.height - (menubar.height + statusbar.height + tabs.height);
+                     preferred-height: 300px;
                      wrap: no-wrap;
                      edited(text) => {
                         root.content = text;

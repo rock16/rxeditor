@@ -1,4 +1,6 @@
+use std::cell::RefCell;
 use std::path::PathBuf;
+use std::rc::Rc;
 use std::sync::{Arc, Mutex};
 use crate::lib::texthistory::TextHistory;
 
@@ -19,6 +21,16 @@ impl Tab{
             current_file_path,
         }
     }
+    fn create_from_data(text_history: TextHistory) -> Self{
+        let text_history = Arc::new(Mutex::new(text_history));
+        let is_programmatic_change = Arc::new(Mutex::new(false));
+        let current_file_path = Arc::new(Mutex::new(None));
+        Tab{
+            text_history,
+            is_programmatic_change,
+            current_file_path,
+        }
+    }
 }
 
 pub struct AppState {
@@ -31,7 +43,7 @@ impl AppState {
         let mut tab = Tab::new();
         let mut tabs: Vec<Tab> = Vec::new();
         tabs.push(tab);
-        let current_index = 0;
+        let current_index = 0 as usize;
         AppState{
             tabs,
             current_index
@@ -39,16 +51,16 @@ impl AppState {
     }
 
     pub fn get_text_history(&self)->Arc<Mutex<TextHistory>>{
-        self.tabs[self.current_index].text_history.clone()
+        self.tabs[self.current_index.clone()].text_history.clone()
     }
     pub fn get_is_programmatic_change(&self)->Arc<Mutex<bool>>{
-        self.tabs[self.current_index].is_programmatic_change.clone()
+        self.tabs[self.current_index.clone()].is_programmatic_change.clone()
     }
     pub fn get_current_file_path(&self) -> Arc<Mutex<Option<PathBuf>>>{
-        self.tabs[self.current_index].current_file_path.clone()
+        self.tabs[self.current_index.clone()].current_file_path.clone()
     }
     pub fn set_current_file_path(&mut self, path: PathBuf) {
         let current_path = Arc::new(Mutex::new(Some(path)));
-        self.tabs[self.current_index].current_file_path = current_path;
+        self.tabs[self.current_index.clone()].current_file_path = current_path;
     }
 }

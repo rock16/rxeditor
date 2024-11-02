@@ -1,7 +1,8 @@
+use std::rc::Rc;
 use tokio::time::{Duration};
 use futures::channel::mpsc;
 use futures::SinkExt;
-use slint::SharedString;
+use slint::{Model, SharedString};
 use crate::ui::rxeditor_view::AppState;
 use crate::ui::utils;
 slint::include_modules!();
@@ -80,6 +81,18 @@ async fn main() -> Result<(), Box<dyn std::error::Error>>{
             ui.set_undo_enabled(history.can_undo());
             ui.set_redo_enabled(history.can_redo());
         }
+    });
+
+    let ui_handle = ui.as_weak();
+    ui.global::<TabManager>().on_new_tab(move || {
+        let file_name = "file.txt";
+        eprintln!("new tab created");
+        let ui = ui_handle.unwrap();
+        let mut tabs: Vec<SharedString>= ui.get_tab_titles().iter().collect();
+        tabs.push(file_name.into());
+        let final_tab = Rc::new(slint::VecModel::from(tabs.clone()));
+        ui.set_tab_titles(final_tab.into());
+        println!("{:?}",tabs);
     });
 
     //let ui_handle = ui.as_weak();
