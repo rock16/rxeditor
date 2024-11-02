@@ -32,7 +32,6 @@ export global TextContent {
 export global TabManager {
     callback new-tab();
     callback switch-tab(int);
-    in-out property <int> current-tab-index;
 }
 
 // menu callbacks
@@ -51,8 +50,9 @@ export component RxTextEdittor inherits Window {
     in-out property <bool> undo_enabled: false;
     in-out property <bool> redo_enabled: false;
     in-out property <[string]> tab-titles: [
-        "output", "input", "text0", "text1"
+        "output"
     ];
+    in-out property <int> current-tab-index;
     callback button_clicked;
     min-width: 520px;
     min-height: 480px;
@@ -126,7 +126,7 @@ export component RxTextEdittor inherits Window {
                          TouchArea {
                              Text {
                                   text: root.tab-titles[i];
-                                  color: i == TabManager.current-tab-index ? white : grey;
+                                  color: i == root.current-tab-index ? white : grey;
                              }
                              clicked => {TabManager.switch-tab(i);}
                          }

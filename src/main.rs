@@ -1,9 +1,10 @@
+use std::cell::RefCell;
 use std::rc::Rc;
 use tokio::time::{Duration};
 use futures::channel::mpsc;
 use futures::SinkExt;
 use slint::{Model, SharedString};
-use crate::ui::rxeditor_view::AppState;
+use crate::ui::rxeditor_view::{AppState, Tab};
 use crate::ui::utils;
 slint::include_modules!();
 
@@ -17,14 +18,15 @@ async fn main() -> Result<(), Box<dyn std::error::Error>>{
     let ui = RxTextEdittor::new()?;
 
     let app_state = AppState::new();
+    let app_state = Rc::new(RefCell::new(app_state));
 
     let (sender, receiver) = mpsc::channel(100);
 
     let sender_clone = sender.clone();
-    let is_programmatic_change = app_state.get_is_programmatic_change();
+    let is_programmatic_change = app_state.borrow_mut().get_is_programmatic_change();
     let ui_handle = ui.as_weak();
     let ui_handle2 = ui.as_weak();
-    let text_history = app_state.get_text_history();
+    let text_history = app_state.borrow_mut().get_text_history();
     ui.global::<TextContent>().on_text_editted(move |text: SharedString| {
         if !*is_programmatic_change.lock().unwrap(){
             let mut sender = sender_clone.clone();
@@ -48,14 +50,14 @@ async fn main() -> Result<(), Box<dyn std::error::Error>>{
         }
     });
 
-    let text_history_clone = app_state.get_text_history();
+    let text_history_clone = app_state.borrow_mut().get_text_history();
     let ui_handle = ui.as_weak();
-    let is_programmatic_change_clone = app_state.get_is_programmatic_change();
+    let is_programmatic_change_clone = app_state.borrow_mut().get_is_programmatic_change();
     tokio::spawn(utils::debouncer(receiver, Duration::from_millis(0),is_programmatic_change_clone ,text_history_clone, ui_handle));
 
-    let text_history = app_state.get_text_history();
+    let text_history = app_state.borrow_mut().get_text_history();
     let ui_handle = ui.as_weak();
-    let is_programmatic_change = app_state.get_is_programmatic_change();
+    let is_programmatic_change = app_state.borrow_mut().get_is_programmatic_change();
     ui.global::<MenuCallback>().on_undo(move || {
         let mut history = text_history.lock().unwrap();
         let ui = ui_handle.unwrap();
@@ -68,9 +70,9 @@ async fn main() -> Result<(), Box<dyn std::error::Error>>{
         }
     });
 
-    let text_history = app_state.get_text_history().clone();
+    let text_history = app_state.borrow_mut().get_text_history().clone();
     let ui_handle = ui.as_weak();
-    let is_programmatic_change = app_state.get_is_programmatic_change();
+    let is_programmatic_change = app_state.borrow_mut().get_is_programmatic_change();
     ui.global::<MenuCallback>().on_redo(move || {
         let mut history = text_history.lock().unwrap();
         let ui = ui_handle.unwrap();
@@ -84,20 +86,35 @@ async fn main() -> Result<(), Box<dyn std::error::Error>>{
     });
 
     let ui_handle = ui.as_weak();
+    let mut app_state_handle = app_state.clone();
     ui.global::<TabManager>().on_new_tab(move || {
-        let file_name = "file.txt";
+        let mut app_state_handle = app_state_handle.borrow_mut();
+        let mut file_name = "file";
         eprintln!("new tab created");
         let ui = ui_handle.unwrap();
         let mut tabs: Vec<SharedString>= ui.get_tab_titles().iter().collect();
+
+        let mut tab = Tab::new();
+        app_state_handle.tabs.push(tab);
+        let tab_index = tabs.len();
+        let tab_index_string = format!("{}", tab_index);
+        let file_name = file_name.to_owned() + &tab_index_string;
+
         tabs.push(file_name.into());
+        let current_tab_index = tab_index;
+
+        app_state_handle.set_current_index(current_tab_index);
         let final_tab = Rc::new(slint::VecModel::from(tabs.clone()));
+
+        // set ui element
         ui.set_tab_titles(final_tab.into());
+        ui.set_current_tab_index(current_tab_index as i32);
         println!("{:?}",tabs);
     });
 
     //let ui_handle = ui.as_weak();
-    let text_history = app_state.get_text_history();
-    let current_file_path = app_state.get_current_file_path();
+    let text_history = app_state.borrow_mut().get_text_history();
+    let current_file_path = app_state.borrow_mut().get_current_file_path();
     ui.global::<MenuCallback>().on_save(move ||{
         let history = text_history.lock().unwrap();
         let content = history.history[history.current_index].clone();
@@ -107,7 +124,8 @@ async fn main() -> Result<(), Box<dyn std::error::Error>>{
     });
 
     let ui_handle = ui.as_weak();
-    let current_file_path = app_state.get_current_file_path();
+    let current_file_path = app_state.borrow_mut().get_current_file_path();
+    //let appstate_handle = app_state.clone();
     ui.global::<MenuCallback>().on_save_as(move || {
         let ui = ui_handle.unwrap();
         // Assuming you have a way to get the current
@@ -118,9 +136,9 @@ async fn main() -> Result<(), Box<dyn std::error::Error>>{
     });
 
     let ui_handle = ui.as_weak();
-    let text_history = app_state.get_text_history();
-    let file_path = app_state.get_current_file_path();
-    let is_programmatic_change = app_state.get_is_programmatic_change();
+    let text_history = app_state.borrow_mut().get_text_history();
+    let file_path = app_state.borrow_mut().get_current_file_path();
+    let is_programmatic_change = app_state.borrow_mut().get_is_programmatic_change();
     ui.global::<MenuCallback>().on_open(move ||{
         let ui = ui_handle.unwrap();
         if let Ok(content) = utils::open_file(&file_path){
